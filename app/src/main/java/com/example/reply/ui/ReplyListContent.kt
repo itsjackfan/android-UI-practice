@@ -16,6 +16,7 @@
 
 package com.example.reply.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -77,9 +79,11 @@ fun ReplyListPane(
             ReplySearchBar(modifier = Modifier.fillMaxWidth())
         }
         items(replyHomeUIState.emails) { email ->
+            val isSelected = email.id == replyHomeUIState.selected?.id
             ReplyEmailListItem(
                 email = email,
-                onEmailClick = onEmailClick
+                onEmailClick = onEmailClick,
+                isSelected = isSelected
             )
         }
     }
@@ -111,10 +115,18 @@ fun ReplyDetailPane(
 fun ReplyEmailListItem(
     email: Email,
     onEmailClick: (Email) -> Unit,
+    isSelected: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Card(
         onClick = { onEmailClick(email) },
+        border = BorderStroke(
+            width = 2.dp,
+            color = if (isSelected)
+                    MaterialTheme.colorScheme.primary
+                else
+                    Color.Transparent
+        ),
         modifier = modifier.padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
         Column(

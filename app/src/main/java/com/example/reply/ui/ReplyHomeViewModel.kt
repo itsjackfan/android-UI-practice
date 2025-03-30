@@ -24,6 +24,7 @@ import com.example.reply.data.EmailsRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ReplyHomeViewModel(
@@ -51,12 +52,15 @@ class ReplyHomeViewModel(
     }
 
     fun setSelectedEmail(email: Email) {
-        // You will implement email selection here.
+        _uiState.update {
+            currentState -> currentState.copy(selected = email)
+        }
     }
 }
 
 data class ReplyHomeUIState(
     val emails : List<Email> = emptyList(),
     val loading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val selected: Email? = null
 )
