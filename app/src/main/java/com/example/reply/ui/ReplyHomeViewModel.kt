@@ -51,6 +51,17 @@ class ReplyHomeViewModel(
         }
     }
 
+    fun starEmail(email: Email) {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                val updatedEmails = currentState.emails.map { 
+                    if (it.id == email.id) it.copy(isStarred = !email.isStarred) else it 
+                }
+                currentState.copy(emails = updatedEmails)
+            }
+        }
+    }
+
     fun setSelectedEmail(email: Email) {
         _uiState.update {
             currentState -> currentState.copy(selected = email)

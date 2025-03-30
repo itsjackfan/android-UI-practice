@@ -47,7 +47,8 @@ class MainActivity : ComponentActivity() {
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 ReplyApp(
                     replyHomeUIState = uiState,
-                    onEmailClick = viewModel::setSelectedEmail
+                    onEmailClick = viewModel::setSelectedEmail,
+                    onStarClick = viewModel::starEmail
                 )
             }
         }
@@ -62,7 +63,8 @@ fun ReplyAppPreview() {
             replyHomeUIState = ReplyHomeUIState(
                 emails = LocalEmailsDataProvider.allEmails
             ),
-            onEmailClick = {}
+            onEmailClick = {},
+            onStarClick = {}
         )
     }
 }
@@ -75,7 +77,8 @@ fun ReplyAppPreviewTablet() {
             replyHomeUIState = ReplyHomeUIState(
                 emails = LocalEmailsDataProvider.allEmails
             ),
-            onEmailClick = {}
+            onEmailClick = {},
+            onStarClick = {}
         )
     }
 }
@@ -88,7 +91,8 @@ fun ReplyAppPreviewDesktop() {
             replyHomeUIState = ReplyHomeUIState(
                 emails = LocalEmailsDataProvider.allEmails
             ),
-            onEmailClick = {}
+            onEmailClick = {},
+            onStarClick = {}
         )
     }
 }

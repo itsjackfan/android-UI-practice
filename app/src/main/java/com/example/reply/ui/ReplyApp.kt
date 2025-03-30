@@ -47,11 +47,13 @@ import com.example.reply.data.Email
 fun ReplyApp(
     replyHomeUIState: ReplyHomeUIState,
     onEmailClick: (Email) -> Unit,
+    onStarClick: (Email) -> Unit
 ) {
     ReplyNavigationWrapperUI {
         ReplyAppContent(
             replyHomeUIState = replyHomeUIState,
             onEmailClick = onEmailClick,
+            onStarClick = onStarClick
         )
     }
 }
@@ -136,6 +138,7 @@ private fun ReplyNavigationWrapperUI(
 fun ReplyAppContent(
     replyHomeUIState: ReplyHomeUIState,
     onEmailClick: (Email) -> Unit,
+    onStarClick: (Email) -> Unit
 ) {
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     val isCompact = windowSizeClass.windowWidthSizeClass.toString() == "WindowWidthSizeClass: COMPACT"
@@ -144,6 +147,7 @@ fun ReplyAppContent(
         ReplyListPane(
             replyHomeUIState = replyHomeUIState,
             onEmailClick = onEmailClick,
+            onStarClick = onStarClick
         )
     } else {
         Row(
@@ -156,7 +160,8 @@ fun ReplyAppContent(
                 onEmailClick = onEmailClick,
                 modifier = Modifier
                     .weight(if (replyHomeUIState.selected != null) 0.3f else 1f)
-                    .fillMaxHeight()
+                    .fillMaxHeight(),
+                onStarClick = onStarClick
             )
 
             if (replyHomeUIState.selected != null) {
@@ -164,7 +169,8 @@ fun ReplyAppContent(
                     email = replyHomeUIState.selected,
                     modifier = Modifier
                         .weight(0.7f)
-                        .fillMaxHeight()
+                        .fillMaxHeight(),
+                    onStarClick = onStarClick
                 )
             }
         }

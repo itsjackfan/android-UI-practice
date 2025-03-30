@@ -67,6 +67,7 @@ import com.example.reply.data.Email
 fun ReplyListPane(
     replyHomeUIState: ReplyHomeUIState,
     onEmailClick: (Email) -> Unit,
+    onStarClick: (Email) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -83,6 +84,7 @@ fun ReplyListPane(
             ReplyEmailListItem(
                 email = email,
                 onEmailClick = onEmailClick,
+                onStarClick = onStarClick,
                 isSelected = isSelected
             )
         }
@@ -92,6 +94,7 @@ fun ReplyListPane(
 @Composable
 fun ReplyDetailPane(
     email: Email,
+    onStarClick: (Email) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -103,10 +106,10 @@ fun ReplyDetailPane(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Top).asPaddingValues()
     ) {
         item {
-            ReplyEmailThreadItem(email)
+            ReplyEmailThreadItem(email, onStarClick)
         }
         items(email.replies) { reply ->
-            ReplyEmailThreadItem(reply)
+            ReplyEmailThreadItem(reply, onStarClick)
         }
     }
 }
@@ -115,6 +118,7 @@ fun ReplyDetailPane(
 fun ReplyEmailListItem(
     email: Email,
     onEmailClick: (Email) -> Unit,
+    onStarClick: (Email) -> Unit,
     isSelected: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -156,7 +160,7 @@ fun ReplyEmailListItem(
                     )
                 }
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { onStarClick(email) },
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surface)
@@ -189,6 +193,7 @@ fun ReplyEmailListItem(
 @Composable
 fun ReplyEmailThreadItem(
     email: Email,
+    onStarClick: (Email) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -222,7 +227,7 @@ fun ReplyEmailThreadItem(
                     )
                 }
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { onStarClick(email) },
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surface)
@@ -255,7 +260,7 @@ fun ReplyEmailThreadItem(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = { println("THIS WAS CLICKED 1") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.inverseOnSurface)
                 ) {
@@ -265,7 +270,7 @@ fun ReplyEmailThreadItem(
                     )
                 }
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = { println("THIS WAS CLICKED 4") },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.inverseOnSurface)
                 ) {
