@@ -19,13 +19,20 @@ package com.example.reply.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.example.reply.data.Email
 
 @Composable
@@ -43,7 +51,7 @@ fun ReplyApp(
     ReplyNavigationWrapperUI {
         ReplyAppContent(
             replyHomeUIState = replyHomeUIState,
-            onEmailClick = onEmailClick
+            onEmailClick = onEmailClick,
         )
     }
 }
@@ -55,32 +63,70 @@ private fun ReplyNavigationWrapperUI(
     var selectedDestination: ReplyDestination by remember {
         mutableStateOf(ReplyDestination.Inbox)
     }
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    val isCompact = windowSizeClass.windowWidthSizeClass.toString() == "WindowWidthSizeClass: COMPACT"
 
-    // You will implement adaptive navigation here.
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.inverseOnSurface)
-    ) {
-        Box(modifier = Modifier.weight(1f)) {
-            content()
+    if (isCompact) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.inverseOnSurface)
+        ) {
+            Box(modifier = Modifier.weight(1f)) {
+                content()
+            }
+
+            NavigationBar(modifier = Modifier.fillMaxWidth()) {
+                ReplyDestination.entries.forEach {
+                    NavigationBarItem(
+                        selected = it == selectedDestination,
+                        onClick = { selectedDestination = it },
+                        icon = {
+                            Icon(
+                                imageVector = it.icon,
+                                contentDescription = stringResource(it.labelRes)
+                            )
+                        },
+                        label = {
+                            Text(text = stringResource(it.labelRes))
+                        },
+                    )
+                }
+            }
         }
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.inverseOnSurface)
+        ) {
+            NavigationRail(
+                modifier = Modifier.fillMaxHeight(),
+                containerColor = MaterialTheme.colorScheme.inverseOnSurface
+            ) {
+                ReplyDestination.entries.forEach {
+                    NavigationRailItem(
+                        selected = it == selectedDestination,
+                        onClick = { selectedDestination = it },
+                        icon = {
+                            Icon(
+                                imageVector = it.icon,
+                                contentDescription = stringResource(it.labelRes)
+                            )
+                        },
+                        label = {
+                            Text(text = stringResource(it.labelRes))
+                        }
+                    )
+                }
+            }
 
-        NavigationBar(modifier = Modifier.fillMaxWidth()) {
-            ReplyDestination.entries.forEach {
-                NavigationBarItem(
-                    selected = it == selectedDestination,
-                    onClick = { /*TODO update selection*/ },
-                    icon = {
-                        Icon(
-                            imageVector = it.icon,
-                            contentDescription = stringResource(it.labelRes)
-                        )
-                    },
-                    label = {
-                        Text(text = stringResource(it.labelRes))
-                    },
-                )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            ) {
+                content()
             }
         }
     }
@@ -91,9 +137,36 @@ fun ReplyAppContent(
     replyHomeUIState: ReplyHomeUIState,
     onEmailClick: (Email) -> Unit,
 ) {
-    // You will implement an adaptive two-pane layout here.
-    ReplyListPane(
-        replyHomeUIState = replyHomeUIState,
-        onEmailClick = onEmailClick,
-    )
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    val isCompact = windowSizeClass.windowWidthSizeClass.toString() == "WindowWidthSizeClass: COMPACT"
+
+    if (isCompact) {
+        ReplyListPane(
+            replyHomeUIState = replyHomeUIState,
+            onEmailClick = onEmailClick,
+        )
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.inverseOnSurface)
+        ) {
+            ReplyListPane(
+                replyHomeUIState = replyHomeUIState,
+                onEmailClick = onEmailClick,
+                modifier = Modifier
+                    .weight(if (replyHomeUIState.selected != null) 0.3f else 1f)
+                    .fillMaxHeight()
+            )
+
+            if (replyHomeUIState.selected != null) {
+                ReplyDetailPane(
+                    email = replyHomeUIState.selected,
+                    modifier = Modifier
+                        .weight(0.7f)
+                        .fillMaxHeight()
+                )
+            }
+        }
+    }
 }

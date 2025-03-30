@@ -65,6 +65,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.material3.window.size.class1.android)
+    implementation(libs.androidx.adaptive.android)
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)

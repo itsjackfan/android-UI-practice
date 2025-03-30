@@ -37,5 +37,6 @@ class EmailsRepositoryImpl : EmailsRepository {
 
     override fun getEmailFromId(id: Long): Flow<Email?> = flow {
         val categoryEmails = LocalEmailsDataProvider.allEmails.firstOrNull { it.id == id }
+        emit(categoryEmails)
     }
 }
