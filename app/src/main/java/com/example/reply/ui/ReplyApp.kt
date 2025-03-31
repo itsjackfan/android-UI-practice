@@ -47,19 +47,27 @@ import com.example.reply.data.Email
 fun ReplyApp(
     replyHomeUIState: ReplyHomeUIState,
     onEmailClick: (Email) -> Unit,
-    onStarClick: (Email) -> Unit
+    onStarClick: (Email) -> Unit,
+    onReply: (Email, Boolean) -> Unit,
+    onDismissReply: () -> Unit,
+    onSendReply: (String) -> Unit,
+    onClearEmail: () -> Unit
 ) {
-    ReplyNavigationWrapperUI {
+    ReplyNavigationWrapperUI(onClearEmail = onClearEmail) {
         ReplyAppContent(
             replyHomeUIState = replyHomeUIState,
             onEmailClick = onEmailClick,
-            onStarClick = onStarClick
+            onStarClick = onStarClick,
+            onReply = onReply,
+            onDismissReply = onDismissReply,
+            onSendReply = onSendReply
         )
     }
 }
 
 @Composable
 private fun ReplyNavigationWrapperUI(
+    onClearEmail: () -> Unit,
     content: @Composable () -> Unit = {}
 ) {
     var selectedDestination: ReplyDestination by remember {
@@ -82,7 +90,12 @@ private fun ReplyNavigationWrapperUI(
                 ReplyDestination.entries.forEach {
                     NavigationBarItem(
                         selected = it == selectedDestination,
-                        onClick = { selectedDestination = it },
+                        onClick = { 
+                            selectedDestination = it 
+                            if (it == ReplyDestination.Inbox) {
+                                onClearEmail()
+                            }
+                        },
                         icon = {
                             Icon(
                                 imageVector = it.icon,
@@ -109,7 +122,12 @@ private fun ReplyNavigationWrapperUI(
                 ReplyDestination.entries.forEach {
                     NavigationRailItem(
                         selected = it == selectedDestination,
-                        onClick = { selectedDestination = it },
+                        onClick = { 
+                            selectedDestination = it 
+                            if (it == ReplyDestination.Inbox) {
+                                onClearEmail()
+                            }
+                        },
                         icon = {
                             Icon(
                                 imageVector = it.icon,
@@ -138,37 +156,88 @@ private fun ReplyNavigationWrapperUI(
 fun ReplyAppContent(
     replyHomeUIState: ReplyHomeUIState,
     onEmailClick: (Email) -> Unit,
-    onStarClick: (Email) -> Unit
+    onStarClick: (Email) -> Unit,
+    onReply: (Email, Boolean) -> Unit,
+    onSendReply: (String) -> Unit,
+    onDismissReply: () -> Unit
 ) {
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     val isCompact = windowSizeClass.windowWidthSizeClass.toString() == "WindowWidthSizeClass: COMPACT"
 
     if (isCompact) {
-        ReplyListPane(
-            replyHomeUIState = replyHomeUIState,
-            onEmailClick = onEmailClick,
-            onStarClick = onStarClick
-        )
+        if (replyHomeUIState.replyTo != null) {
+            ReplyPane(
+                email = replyHomeUIState.replyTo,
+                onSendReply = onSendReply,
+                onDismissReply = onDismissReply,
+                isReplyAll = replyHomeUIState.replyAll
+            )
+        } else if (replyHomeUIState.selected != null) {
+            ReplyDetailPane(
+                replyHomeUIState = replyHomeUIState,
+                email = replyHomeUIState.selected,
+                modifier = Modifier
+                    .fillMaxHeight(),
+                onStarClick = onStarClick,
+                onReply = onReply,
+            )
+        } else {
+            ReplyListPane(
+                replyHomeUIState = replyHomeUIState,
+                onEmailClick = onEmailClick,
+                onStarClick = onStarClick
+            )
+        }
     } else {
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.inverseOnSurface)
         ) {
-            ReplyListPane(
-                replyHomeUIState = replyHomeUIState,
-                onEmailClick = onEmailClick,
-                modifier = Modifier
-                    .weight(if (replyHomeUIState.selected != null) 0.3f else 1f)
-                    .fillMaxHeight(),
-                onStarClick = onStarClick
-            )
-
-            if (replyHomeUIState.selected != null) {
+            if (replyHomeUIState.replyTo != null) {
                 ReplyDetailPane(
+                    replyHomeUIState = replyHomeUIState,
+                    email = replyHomeUIState.replyTo,
+                    modifier = Modifier
+                        .weight(0.3f)
+                        .fillMaxHeight(),
+                    onStarClick = onStarClick,
+                    onReply = onReply
+                )
+
+                ReplyPane(
+                    email = replyHomeUIState.replyTo,
+                    onSendReply = onSendReply,
+                    onDismissReply = onDismissReply,
+                    isReplyAll = replyHomeUIState.replyAll,
+                    modifier = Modifier
+                        .weight(0.7f)
+                        .fillMaxHeight()
+                )
+            } else if (replyHomeUIState.selected != null) {
+                ReplyListPane(
+                    replyHomeUIState = replyHomeUIState,
+                    onEmailClick = onEmailClick,
+                    modifier = Modifier
+                        .weight(0.3f)
+                        .fillMaxHeight(),
+                    onStarClick = onStarClick
+                )
+
+                ReplyDetailPane(
+                    replyHomeUIState = replyHomeUIState,
                     email = replyHomeUIState.selected,
                     modifier = Modifier
                         .weight(0.7f)
+                        .fillMaxHeight(),
+                    onStarClick = onStarClick,
+                    onReply = onReply,
+                )
+            } else {
+                ReplyListPane(
+                    replyHomeUIState = replyHomeUIState,
+                    onEmailClick = onEmailClick,
+                    modifier = Modifier
                         .fillMaxHeight(),
                     onStarClick = onStarClick
                 )

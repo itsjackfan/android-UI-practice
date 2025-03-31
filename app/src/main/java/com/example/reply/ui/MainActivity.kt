@@ -48,7 +48,14 @@ class MainActivity : ComponentActivity() {
                 ReplyApp(
                     replyHomeUIState = uiState,
                     onEmailClick = viewModel::setSelectedEmail,
-                    onStarClick = viewModel::starEmail
+                    onStarClick = viewModel::starEmail,
+                    onReply = viewModel::setReplyingEmail,
+                    onDismissReply = viewModel::clearReplyingEmail,
+                    onSendReply = { replyText ->
+                        println("Sending reply: ${replyText}")
+                        viewModel::clearReplyingEmail
+                    },
+                    onClearEmail = viewModel::clearEmail
                 )
             }
         }
@@ -64,7 +71,11 @@ fun ReplyAppPreview() {
                 emails = LocalEmailsDataProvider.allEmails
             ),
             onEmailClick = {},
-            onStarClick = {}
+            onStarClick = {},
+            onReply = { email, boolean -> },
+            onDismissReply = {},
+            onSendReply = {},
+            onClearEmail = {}
         )
     }
 }
@@ -78,7 +89,11 @@ fun ReplyAppPreviewTablet() {
                 emails = LocalEmailsDataProvider.allEmails
             ),
             onEmailClick = {},
-            onStarClick = {}
+            onStarClick = {},
+            onReply = { email, boolean -> },
+            onDismissReply = {},
+            onSendReply = {},
+            onClearEmail = {}
         )
     }
 }
@@ -92,7 +107,11 @@ fun ReplyAppPreviewDesktop() {
                 emails = LocalEmailsDataProvider.allEmails
             ),
             onEmailClick = {},
-            onStarClick = {}
+            onStarClick = {},
+            onReply = { email, boolean -> },
+            onDismissReply = {},
+            onSendReply = {},
+            onClearEmail = {}
         )
     }
 }

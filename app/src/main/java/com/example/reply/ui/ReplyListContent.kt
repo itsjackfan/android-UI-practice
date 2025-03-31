@@ -16,6 +16,7 @@
 
 package com.example.reply.ui
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -39,6 +41,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,7 +50,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +68,64 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.example.reply.R
 import com.example.reply.data.Email
+
+@Composable
+fun ReplyPane(
+    email: Email,
+    onSendReply: (String) -> Unit,
+    onDismissReply: () -> Unit,
+    isReplyAll: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    val recipients = if (isReplyAll) {
+        val allSenders = mutableSetOf(email.sender.fullName) 
+        email.replies.forEach { reply ->
+            allSenders.add(reply.sender.fullName) 
+        }
+        allSenders.joinToString(", ")
+    } else {
+        email.sender.fullName
+    }
+
+    val replyText = remember { mutableStateOf("") }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Replying to: ${recipients}",
+            style = MaterialTheme.typography.headlineSmall
+        )
+
+        TextField(
+            value = replyText.value,
+            onValueChange = { replyText.value = it },
+            label = { Text("Reply") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Button(
+                onClick = {
+                    onSendReply(replyText.value)
+                    onDismissReply()
+                },
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Text("Send")
+            }
+
+            Button(onClick = onDismissReply) {
+                Text("Cancel")
+            }
+        }
+    }
+}
 
 @Composable
 fun ReplyListPane(
@@ -93,11 +157,14 @@ fun ReplyListPane(
 
 @Composable
 fun ReplyDetailPane(
+    replyHomeUIState: ReplyHomeUIState,
     email: Email,
     onStarClick: (Email) -> Unit,
+    onReply: (Email, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
+    Log.d("ReplyDetailPane", "Composing with selected email.id: ${replyHomeUIState.selected?.id}, isStarred: ${replyHomeUIState.selected?.isStarred}")
+    val email = replyHomeUIState.selected!!
     val layoutDirection = LocalLayoutDirection.current
 
     LazyColumn(
@@ -105,11 +172,20 @@ fun ReplyDetailPane(
         contentPadding = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Top).asPaddingValues()
     ) {
-        item {
-            ReplyEmailThreadItem(email, onStarClick)
+        item(key = email.id) {
+            Log.d("ReplyDetailPane", "Passing to ReplyEmailThreadItem: email.id: ${email.id}, isStarred: ${email.isStarred}")
+            ReplyEmailThreadItem(
+                email = email,
+                onStarClick = onStarClick,
+                onReply = onReply
+            )
         }
-        items(email.replies) { reply ->
-            ReplyEmailThreadItem(reply, onStarClick)
+        items(email.replies, key = {it.id }) { reply ->
+            ReplyEmailThreadItem(
+                email = reply,
+                onStarClick = onStarClick,
+                onReply = onReply
+            )
         }
     }
 }
@@ -166,9 +242,9 @@ fun ReplyEmailListItem(
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.StarBorder,
+                        imageVector = if (email.isStarred) Icons.Filled.Star else Icons.Default.StarBorder,
                         contentDescription = "Favorite",
-                        tint = MaterialTheme.colorScheme.outline
+                        tint = if (email.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                     )
                 }
             }
@@ -194,8 +270,10 @@ fun ReplyEmailListItem(
 fun ReplyEmailThreadItem(
     email: Email,
     onStarClick: (Email) -> Unit,
+    onReply: (Email, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Log.d("ReplyEmailThreadItem", "Composing with email.id: ${email.id}, isStarred: ${email.isStarred}")
     Card(
         modifier = modifier.padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -233,9 +311,9 @@ fun ReplyEmailThreadItem(
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.StarBorder,
+                        imageVector = if (email.isStarred) Icons.Filled.Star else Icons.Default.StarBorder,
                         contentDescription = "Favorite",
-                        tint = MaterialTheme.colorScheme.outline
+                        tint = if (email.isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                     )
                 }
             }
@@ -260,7 +338,7 @@ fun ReplyEmailThreadItem(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Button(
-                    onClick = { println("THIS WAS CLICKED 1") },
+                    onClick = { onReply(email, false) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.inverseOnSurface)
                 ) {
@@ -270,7 +348,7 @@ fun ReplyEmailThreadItem(
                     )
                 }
                 Button(
-                    onClick = { println("THIS WAS CLICKED 4") },
+                    onClick = { onReply(email, true) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.inverseOnSurface)
                 ) {

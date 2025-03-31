@@ -16,6 +16,7 @@
 
 package com.example.reply.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reply.data.Email
@@ -54,10 +55,19 @@ class ReplyHomeViewModel(
     fun starEmail(email: Email) {
         viewModelScope.launch {
             _uiState.update { currentState ->
-                val updatedEmails = currentState.emails.map { 
-                    if (it.id == email.id) it.copy(isStarred = !email.isStarred) else it 
+                val updatedEmails = currentState.emails.map { existingEmail ->
+                    if (existingEmail.id == email.id) {
+                        existingEmail.copy(isStarred = !existingEmail.isStarred)
+                    } else {
+                        existingEmail
+                    }
                 }
-                currentState.copy(emails = updatedEmails)
+                val updatedSelectedEmail = if (currentState.selected?.id == email.id) {
+                    email.copy(isStarred = !email.isStarred)
+                } else {
+                    currentState.selected
+                }
+                currentState.copy(emails = updatedEmails, selected = updatedSelectedEmail)
             }
         }
     }
@@ -67,11 +77,31 @@ class ReplyHomeViewModel(
             currentState -> currentState.copy(selected = email)
         }
     }
+
+    fun clearEmail() {
+        _uiState.update {
+            currentState -> currentState.copy(selected = null, replyTo = null, replyAll = false)
+        }
+    }
+
+    fun setReplyingEmail(email: Email, isReplyAll: Boolean = false) {
+        _uiState.update {
+            currentState -> currentState.copy(replyTo = email, replyAll = isReplyAll)
+        }
+    }
+
+    fun clearReplyingEmail() {
+        _uiState.update {
+            currentState -> currentState.copy(replyTo = null, replyAll = false)
+        }
+    }
 }
 
 data class ReplyHomeUIState(
     val emails : List<Email> = emptyList(),
     val loading: Boolean = false,
     val error: String? = null,
-    val selected: Email? = null
+    val selected: Email? = null,
+    val replyTo: Email? = null,
+    val replyAll: Boolean = false
 )
